@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sunnyweather.R
 import com.example.sunnyweather.logic.model.Place
 import com.example.sunnyweather.ui.weather.WeatherActivity
+import kotlinx.android.synthetic.main.activity_weather.*
 import kotlinx.android.synthetic.main.place_item.*
 
 class PlaceAdapter(private val fragment: PlaceFragment, private val placeList: List<Place>):
@@ -29,18 +30,27 @@ class PlaceAdapter(private val fragment: PlaceFragment, private val placeList: L
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val place = placeList[position]
+        val activity = fragment.activity
+
         holder.placeName.text = place.name
         holder.placeAddress.text = place.address
-
-        holder.itemView.setOnClickListener{
-            val intent = Intent(holder.itemView.context,WeatherActivity::class.java).apply {
-                putExtra("location_lng",place.location.lng)
-                putExtra("location_lat",place.location.lat)
-                putExtra("place_name",place.name)
+        holder.itemView.setOnClickListener {
+            if (activity is WeatherActivity) {
+                activity.drawerLayout.closeDrawers()
+                activity.viewModel.locationLng = place.location.lng
+                activity.viewModel.locationLat = place.location.lat
+                activity.viewModel.placeName = place.name
+                activity.refreshWeather()
+            } else {
+                val intent = Intent(holder.itemView.context, WeatherActivity::class.java).apply {
+                    putExtra("location_lng", place.location.lng)
+                    putExtra("location_lat", place.location.lat)
+                    putExtra("place_name", place.name)
+                }
+                fragment.startActivity(intent)
+                activity?.finish()
             }
             fragment.viewModel.savePlace(place)
-            fragment.startActivity(intent)
-            fragment.activity?.finish()
         }
     }
 
